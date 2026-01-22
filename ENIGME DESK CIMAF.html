@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIMAF – Mission Durabilité</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#000;color:#fff;overflow:hidden}
+canvas{position:fixed;top:0;left:0;z-index:0}
+
+/* Layout */
+#app{
+  position:relative;z-index:2;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px
+}
+
+/* Header */
+header{position:absolute;top:20px;text-align:center}
+header h1{font-size:34px;font-weight:700}
+header h2{font-size:18px;color:orange}
+
+/* Panel */
+#panel{
+  background:rgba(0,0,0,.75);
+  border:2px solid orange;
+  border-radius:12px;
+  padding:25px;
+  width:min(360px,92vw);
+  text-align:center
+}
+
+/* Display */
+#display{
+  font-size:28px;
+  letter-spacing:8px;
+  border:1px solid orange;
+  border-radius:10px;
+  padding:12px 10px;
+  margin-bottom:18px;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center
+}
+
+/* Keypad */
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px
+}
+.key{
+  padding:15 reopening;
+  padding:15px;
+  font-size:20px;
+  border:1px solid orange;
+  background:#111;
+  color:#fff;
+  border-radius:10px;
+  cursor:pointer;
+  transition:.15s
+}
+.key:hover{background:orange;color:#000}
+.key:active{transform:scale(.98)}
+.key.zero{grid-column:span 3}
+
+/* Feedback */
+#feedback{margin-top:14px;font-size:20px;font-weight:700;min-height:26px}
+.correct{color:#00ff66}
+.wrong{color:red}
+
+/* Video */
+#videoWrap{
+  display:none;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,165,0,.5)
+}
+#videoText{font-weight:700;margin-bottom:8px}
+#videoBtn{
+  display:inline-block;
+  padding:10px 12px;
+  border:1px solid orange;
+  border-radius:10px;
+  text-decoration:none;
+  color:#fff;
+  background:rgba(255,165,0,.10)
+}
+#videoBtn:hover{background:orange;color:#000}
+
+@media (max-width:420px){
+  header h1{font-size:28px}
+  header h2{font-size:16px}
+}
+</style>
+</head>
+
+<body>
+<canvas id="matrix"></canvas>
+
+<div id="app">
+  <header>
+    <h1>CIMAF</h1>
+    <h2>Mission Durabilité</h2>
+  </header>
+
+  <div id="panel">
+    <div id="display"></div>
+
+    <div class="keypad">
+      <button class="key" onclick="press(1)">1</button>
+      <button class="key" onclick="press(2)">2</button>
+      <button class="key" onclick="press(3)">3</button>
+      <button class="key" onclick="press(4)">4</button>
+      <button class="key" onclick="press(5)">5</button>
+      <button class="key" onclick="press(6)">6</button>
+      <button class="key" onclick="press(7)">7</button>
+      <button class="key" onclick="press(8)">8</button>
+      <button class="key" onclick="press(9)">9</button>
+      <button class="key zero" onclick="press(0)">0</button>
+    </div>
+
+    <div id="feedback"></div>
+
+    <div id="videoWrap">
+      <div id="videoText">CLICK SUR LA VIDEO</div>
+      <a id="videoBtn"
+         href="https://youtube.com/shorts/yZkISq_8Yjc?feature=share"
+         target="_blank" rel="noopener noreferrer">
+        Ouvrir la vidéo
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Matrix background */
+const canvas=document.getElementById("matrix");
+const ctx=canvas.getContext("2d");
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+  init();
+}
+window.addEventListener("resize",resize);
+
+const chars="01▲■";
+const font=16;
+let drops=[];
+
+function init(){
+  drops=Array(Math.floor(canvas.width/font)).fill(1);
+}
+resize();
+
+setInterval(()=>{
+  ctx.fillStyle="rgba(0,0,0,0.05)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="orange";
+  ctx.font=font+"px monospace";
+  drops.forEach((y,i)=>{
+    const t=chars[Math.floor(Math.random()*chars.length)];
+    ctx.fillText(t,i*font,y*font);
+    drops[i]=y*font>canvas.height&&Math.random()>0.98?0:y+1;
+  });
+},50);
+
+/* Code logic */
+const correct="513";
+let input="";
+const display=document.getElementById("display");
+const feedback=document.getElementById("feedback");
+const videoWrap=document.getElementById("videoWrap");
+
+function disablePad(d){
+  document.querySelectorAll(".key").forEach(b=>b.disabled=d);
+}
+
+function press(n){
+  if(input.length>=3)return;
+  input+=n;
+  display.textContent=input;
+  if(input.length===3){
+    if(input===correct){
+      feedback.textContent="CORRECT";
+      feedback.className="correct";
+      videoWrap.style.display="block";
+      disablePad(true);
+    }else{
+      feedback.textContent="RÉESSAYER";
+      feedback.className="wrong";
+      setTimeout(()=>{
+        input="";
+        display.textContent="";
+        feedback.textContent="";
+      },1000);
+    }
+  }
+}
+</script>
+</body>
+</html>
